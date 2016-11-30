@@ -32,6 +32,7 @@ class App:
     # To create a new window
     # self.rootWin.destroy()
     # self.root = Tk()
+    # self.root.wm_title("CS 4400 Phase 3")
     def Register(self):
         self.rootWin.destroy()
         self.root = Tk()
@@ -121,13 +122,37 @@ class App:
         myUserCheck = self.cursor.execute(userCheck, (user, password))
         if myUserCheck == 1:
             messagebox.showinfo("Hello", "Welcome to The Database")
+            getAdmin = "SELECT admin FROM User WHERE Username = %s AND Password = %s"
+            self.cursor.execute(getAdmin, (user, password))
+            admin = self.cursor.fetchone()
             self.rootWin.destroy()
-            self.ChatPage()
+            if admin == 1:
+                self.AdminMainPage()
+            else:
+                self.MainPage()
         else:
             messagebox.showwarning(
                 "Whoops!", "Either your username or password was entered incorrectly")
 
         self.cursor.close()
+
+    def MainPage(self):
+        self.root = Tk()
+        self.root.wm_title("CS 4400 Phase 3")
+
+        # row 1
+        mePage = Button(self.root, text='Me', command=self.MePage)
+        mePage.grid(row=1, column=0, sticky=W)
+        Label(self.root, text='Main Page').grid(row=1, column=1, sticky=W)
+        # row 2
+        Label(self.root, text='Title').grid(row=2, column=0, sticky=W)
+        self.eTitle = Entry(self.root)
+        self.eTitle.grid(row=2, column=1)
+
+        self.root.mainloop()
+
+    def MePage(self):
+        print('TODO')
 
     def Connect(self):
         try:
