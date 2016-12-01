@@ -155,8 +155,8 @@ class App:
         self.eTitle = Entry(self.root)
         self.eTitle.grid(row=2, column=1)
         Label(self.root, text='Category').grid(row=2, column=2, sticky=W)
-        #Categories = self.cursor.execute("SELECT DISTINCT Category FROM Projects, Courses")
-        #Categories = self.cursor.fetchall()
+        # Categories = self.cursor.execute("SELECT DISTINCT Category FROM Projects, Courses")
+        # Categories = self.cursor.fetchall()
         CatVar = StringVar(self.root)
         CatVar.set("Please Select")
         CatDrop = OptionMenu(self.root, CatVar, 'Categories')
@@ -175,10 +175,10 @@ class App:
         YearVar = StringVar(self.root)
         YearVar.set("Please Select")
         YearOpt = ["Freshman", "Sophomore", "Junior", "Senior"]
-        #Designations = self.cursor.execute("SELECT DISTINCT Designation FROM Projects, Courses")
-        #Designations = self.cursor.fetchall()
-        #Majors = self.cursor.execute("SELECT DISTINCT Major FROM Projects, Courses")
-        #Majors = self.cursor.fetchall()
+        # Designations = self.cursor.execute("SELECT DISTINCT Designation FROM Projects, Courses")
+        # Designations = self.cursor.fetchall()
+        # Majors = self.cursor.execute("SELECT DISTINCT Major FROM Projects, Courses")
+        # Majors = self.cursor.fetchall()
         DesDrop = OptionMenu(self.root, DesVar, 'Designations')
         DesDrop.grid(row=3, column=1, padx=1, pady=1)
 
@@ -273,6 +273,7 @@ class App:
         print('TODO')
 
     def AddProjPage(self):
+
         self.root.destroy()
         self.root = Tk()
         self.root.wm_title("Add Project Page")
@@ -296,9 +297,42 @@ class App:
         self.description.grid(row=5, column=1)
         # row 6
         # change 'Designations' to what Dennis has
+        rootVar = StringVar(self.root)
+        rootVar.set("Please Select")
         Label(self.root, text="Category").grid(row=6, column=0)
-        DesDrop = OptionMenu(self.root, DesVar, 'Designations')
-        DesDrop.grid(row=6, column=1, padx=1, pady=1)
+        CatDrop = OptionMenu(self.root, rootVar, 'Designations')
+        CatDrop.grid(row=6, column=1, padx=1, pady=1)
+
+        def AddCat(self):
+            print('TODO')
+
+        addCat = Button(self.root, text='Add a new Category', command=AddCat)
+        addCat.grid(row=6, column=2)
+        # row 7
+        Label(self.root, text="Designation").grid(row=7, column=0)
+        DesDrop = OptionMenu(self.root, rootVar, 'Designations')
+        DesDrop.grid(row=7, column=1, padx=1, pady=1)
+        # row 8
+        Label(self.root, text="Estimated # of Students").grid(row=7, column=0)
+        self.description = Entry(self.root)
+        self.description.grid(row=7, column=1)
+        # row 9
+        Label(self.root, text="Major Requirement").grid(row=9, column=0)
+        MajDrop = OptionMenu(self.root, rootVar, 'Designations')
+        MajDrop.grid(row=9, column=1, padx=1, pady=1)
+        # row 10
+        Label(self.root, text="Year Requirement").grid(row=10, column=0)
+        YearDrop = OptionMenu(self.root, rootVar, 'Designations')
+        YearDrop.grid(row=10, column=1, padx=1, pady=1)
+        # row 11
+        Label(self.root, text="Department Requirement").grid(row=11, column=0)
+        DepDrop = OptionMenu(self.root, rootVar, 'Designations')
+        DepDrop.grid(row=11, column=1, padx=1, pady=1)
+        # row 12
+        back = Button(self.root, text='Back', command=self.AdminMainPage)
+        back.grid(row=12, column=0)
+        submit = Button(self.root, text='Submit', command=self.SubmitProj)
+        submit.grid(row=12, column=2)
 
         self.root.mainloop()
 
@@ -306,6 +340,9 @@ class App:
         print('TODO')
 
     def Logout(self):
+        print('TODO')
+
+    def SubmitProj(self):
         print('TODO')
 
     def Connect(self):
