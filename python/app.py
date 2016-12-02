@@ -295,54 +295,132 @@ class App:
         Label(self.root, text="Description").grid(row=5, column=0)
         self.description = Text(self.root, height=10, width=25)
         self.description.grid(row=5, column=1)
-        # row 6
-        # change 'Designations' to what Dennis has
-        rootVar = StringVar(self.root)
-        rootVar.set("Please Select")
-        Label(self.root, text="Category").grid(row=6, column=0)
-        CatDrop = OptionMenu(self.root, rootVar, 'Designations')
-        CatDrop.grid(row=6, column=1, padx=1, pady=1)
+        # row 6 the current selected categories
 
-        def AddCat(self):
-            print('TODO')
+        def AddCat():
+            if catVar.get() != "Please Select":
+                categoryLabelText.set(categoryLabelText.get() + ", " + catVar.get())
+                Categories.append(catVar.get())
+                catVar.set("Please Select")
+
+        def ClearCat():
+            Categories.clear()
+            categoryLabelText.set("")
+
+        categoriesCaption = Label(self.root, text="Selected Categories:")
+        categoriesCaption.grid(row=6, column=0)
+        categoryLabelText = StringVar()
+        categoryLabelText.set("")
+        categoriesLabel = Label(self.root, textvariable=categoryLabelText)
+        categoriesLabel.grid(row=6, column=1)
+        clearCat = Button(self.root, text="Clear Selected", command=ClearCat)
+        clearCat.grid(row=6, column=2)
+        # row 7
+        # change 'Designations' to what Dennis has
+        Categories = []
+        catVar = StringVar(self.root)
+        catVar.set("Please Select")
+        Label(self.root, text="Category").grid(row=7, column=0)
+        CatDrop = OptionMenu(self.root, catVar, 'Designations')
+        CatDrop.grid(row=7, column=1, padx=1, pady=1)
 
         addCat = Button(self.root, text='Add a new Category', command=AddCat)
-        addCat.grid(row=6, column=2)
-        # row 7
-        Label(self.root, text="Designation").grid(row=7, column=0)
-        DesDrop = OptionMenu(self.root, rootVar, 'Designations')
-        DesDrop.grid(row=7, column=1, padx=1, pady=1)
+        addCat.grid(row=7, column=2)
+
         # row 8
-        Label(self.root, text="Estimated # of Students").grid(row=7, column=0)
-        self.description = Entry(self.root)
-        self.description.grid(row=7, column=1)
+        desVar = StringVar(self.root)
+        desVar.set("Please Select")
+        desLabel = Label(self.root, text="Designation")
+        desLabel.grid(row=8, column=0)
+        DesDrop = OptionMenu(self.root, desVar, 'Designations')
+        DesDrop.grid(row=8, column=1, padx=1, pady=1)
         # row 9
-        Label(self.root, text="Major Requirement").grid(row=9, column=0)
-        MajDrop = OptionMenu(self.root, rootVar, 'Designations')
-        MajDrop.grid(row=9, column=1, padx=1, pady=1)
+        estStuLabel = Label(self.root, text="Estimated # of Students")
+        estStuLabel.grid(row=9, column=0)
+        self.description = Entry(self.root)
+        self.description.grid(row=9, column=1)
         # row 10
-        Label(self.root, text="Year Requirement").grid(row=10, column=0)
-        YearDrop = OptionMenu(self.root, rootVar, 'Designations')
-        YearDrop.grid(row=10, column=1, padx=1, pady=1)
+        majVar = StringVar(self.root)
+        majVar.set("Please Select")
+        majorLabel = Label(self.root, text="Major Requirement")
+        majorLabel.grid(row=10, column=0)
+        MajDrop = OptionMenu(self.root, majVar, 'Designations')
+        MajDrop.grid(row=10, column=1, padx=1, pady=1)
         # row 11
-        Label(self.root, text="Department Requirement").grid(row=11, column=0)
-        DepDrop = OptionMenu(self.root, rootVar, 'Designations')
-        DepDrop.grid(row=11, column=1, padx=1, pady=1)
+        yearVar = StringVar(self.root)
+        yearVar.set("Please Select")
+        yearLabel = Label(self.root, text="Year Requirement")
+        yearLabel.grid(row=11, column=0)
+        YearDrop = OptionMenu(self.root, yearVar, 'Designations')
+        YearDrop.grid(row=11, column=1, padx=1, pady=1)
+        # row 11
+        depVar = StringVar(self.root)
+        depVar.set("Please Select")
+        departmentLabel = Label(self.root, text="Department Requirement")
+        departmentLabel.grid(row=12, column=0)
+        DepDrop = OptionMenu(self.root, depVar, 'Designations')
+        DepDrop.grid(row=12, column=1, padx=1, pady=1)
         # row 12
         back = Button(self.root, text='Back', command=self.AdminMainPage)
-        back.grid(row=12, column=0)
+        back.grid(row=13, column=0)
         submit = Button(self.root, text='Submit', command=self.SubmitProj)
-        submit.grid(row=12, column=2)
+        submit.grid(row=13, column=2)
 
         self.root.mainloop()
+
+    def SubmitProj(self):
+        self.Connect()
+
+        user = self.eUser.get()
+        email = self.eEmail.get()
+        password = self.ePass.get()
+        cPassword = self.eCPass.get()
+
+        if user == '':
+            messagebox.showwarning("Whoops!", "Please enter a username")
+            return
+
+        if email == '':
+            messagebox.showwarning("Whoops!", "Please enter an Email")
+            return
+
+        if password == '' or cPassword == '':
+            messagebox.showwarning(
+                "Whoops!", "Please fill out the password forms")
+            return
+
+        if password != cPassword:
+            messagebox.showwarning("Whoops!", "Make sure your passwords match")
+            return
+
+        userCheck = "SELECT Username FROM User WHERE Username = %s"
+        myUserCheck = self.cursor.execute(userCheck, (user,))
+
+        emailCheck = "SELECT Email FROM User WHERE Email = %s"
+        myEmailCheck = self.cursor.execute(emailCheck, (email,))
+
+        if myUserCheck >= 1:
+            messagebox.showwarning(
+                "Whoops!", "This username is already in use! Please choose another username.")
+        elif myEmailCheck >= 1:
+            messagebox.showwarning(
+                "Whoops!", "This email is already in use! Please choose another email.")
+        else:
+            sql = 'INSERT INTO User (Username, Password, Email) VALUES (%s, %s, %s)'
+            self.cursor.execute(sql, (user, password, email))
+            messagebox.showinfo("Congratulations!",
+                                "You have successfully registered!")
+            self.db.commit()
+            self.root.destroy()
+            self.LoginPage()
+
+        self.cursor.close()
+        self.db.close()
 
     def AddCoursePage(self):
         print('TODO')
 
     def Logout(self):
-        print('TODO')
-
-    def SubmitProj(self):
         print('TODO')
 
     def Connect(self):
