@@ -11,7 +11,7 @@ class App:
                            'technology for social good', 'substainable communities', 'crowd-sourced',
                            'collaborative action']
 
-        self.Designations = ['Substainable Communities', 'Community']
+        self.Designations = ['Sustainable Communities', 'Community']
         self.Years = ['Freshman', 'Sophomore', 'Junior', 'Senior']
         self.Departments = ['College of Computing', 'College of Design', 'College of Engineering',
                             'College of Sciences', 'Ivan Allen College of Liberal Arts',
@@ -431,14 +431,16 @@ class App:
 
         # check all fields must be filled
         if projName == '' or advisorName == '' or advisorEmail == '' or description == '' or categories == '' or designation == '' or estNumStu == '':
-            messagebox.showwarning("Not all fields are filled!")
+            messagebox.showwarning("Error", "Not all fields are filled!")
             return
 
         # check project name is unique
         projNameCheck = "SELECT PName FROM Projects WHERE PName = %s"
         myProjNameCheck = self.cursor.execute(projNameCheck, (projName,))
         if myProjNameCheck >= 1:
-            messageBox.showwarning("This Project Name is Taken")
+            messageBox.showwarning("Error", "This Project Name is Taken")
+        if not self.isNum(estNumStu):
+            messageBox.showwarning("Error", "Estimated Number Of Students must be a Number")
         else:
             sql = 'INSERT INTO Projects (PName, Advisor_Name, Description, Category, Designation, EstimatedNum, Requirements) VALUES (%s, %s, %s, %s, %s, %s, %s)'
             requirements = majorRequirement + ", " + yearRequirement + ", " + depRequirement
@@ -471,4 +473,11 @@ class App:
         except:
             messagebox.showwarning(
                 "Whoops!", "Please check your internet connection")
+
+    def isNum(s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
 App()
