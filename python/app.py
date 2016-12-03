@@ -6,6 +6,16 @@ import pymysql
 class App:
 
     def __init__(self):
+        self.Categories = ['computing for good', 'doing good for your neighborhood',
+                           'reciprocal teaching and learning', 'urban development', 'adaptive learning',
+                           'technology for social good', 'substainable communities', 'crowd-sourced',
+                           'collaborative action']
+
+        self.Designations = ['Substainable Communities', 'Community']
+        self.Years = ['Freshman', 'Sophomore', 'Junior', 'Senior']
+        self.Departments = ['College of Computing', 'College of Design', 'College of Engineering',
+                            'College of Sciences', 'Ivan Allen College of Liberal Arts',
+                            'Scheller College of Business']
         self.LoginPage()
 
     def LoginPage(self):
@@ -262,7 +272,25 @@ class App:
 
     # Chris Lung
     def ViewAppsPage(self):
+        self.root = Tk()
+        self.root.wm_title("Applications")
+        self.cursor = self.db.cursor()
+        back = Button(self.root, text='Back', command=self.AdminMainPage)
+        back.grid(row=3, column=1)
+        accept = Button(self.root, text='Accept', command=self.accept)
+        #reject = Button(self.root, text='Reject', command=self.reject)
+
+        getCourse = "SELECT CName,Cnumber FROM Courses"
+        self.cursor.execute(getCourse)
+        course1 = self.cursor.fetchall()
+
+        # grid layout?
+        # make sure commands are there
+        print(course1)
         print('TODO')
+
+    def accept(self):
+        print("accepted, to do")
 
     # Chris Lung
     def ViewProjReportPage(self):
@@ -273,7 +301,6 @@ class App:
         print('TODO')
 
     def AddProjPage(self):
-
         self.root.destroy()
         self.root = Tk()
         self.root.wm_title("Add Project Page")
@@ -297,68 +324,84 @@ class App:
         self.description.grid(row=5, column=1)
         # row 6 the current selected categories
 
+        self.CategoriesSelected = []
+
         def AddCat():
-            if catVar.get() != "Please Select":
-                categoryLabelText.set(categoryLabelText.get() + ", " + catVar.get())
-                Categories.append(catVar.get())
+            if catVar.get() != "Please Select" and not catVar.get() in self.CategoriesSelected:
+                categoryLabelText.set(categoryLabelText.get() + '\n' + catVar.get())
+                self.CategoriesSelected.append(catVar.get())
                 catVar.set("Please Select")
 
         def ClearCat():
-            Categories.clear()
+            self.CategoriesSelected.clear()
             categoryLabelText.set("")
+
+        def CheckSelected():
+            showSelectedString = ''
+            for c in self.CategoriesSelected:
+                showSelectedString += c + '\n'
+            messagebox.showinfo(showSelectedString)
 
         categoriesCaption = Label(self.root, text="Selected Categories:")
         categoriesCaption.grid(row=6, column=0)
         categoryLabelText = StringVar()
         categoryLabelText.set("")
-        categoriesLabel = Label(self.root, textvariable=categoryLabelText)
-        categoriesLabel.grid(row=6, column=1)
+        # checkSelectedCategories = Button(self.root, text='Check Selected', command=CheckSelected)
+        # checkSelectedCategories.grid(row=6, column=1)
+        selectedCategoriesLabel = Label(self.root, textvariable=categoryLabelText, height=5)
+        selectedCategoriesLabel.grid(row=6, column=1)
         clearCat = Button(self.root, text="Clear Selected", command=ClearCat)
         clearCat.grid(row=6, column=2)
         # row 7
-        # change 'Designations' to what Dennis has
-        Categories = []
         catVar = StringVar(self.root)
         catVar.set("Please Select")
         Label(self.root, text="Category").grid(row=7, column=0)
-        CatDrop = OptionMenu(self.root, catVar, 'Designations')
+        CatDrop = OptionMenu(self.root, catVar, *self.Categories)
         CatDrop.grid(row=7, column=1, padx=1, pady=1)
 
-        addCat = Button(self.root, text='Add a new Category', command=AddCat)
+        addCat = Button(self.root, text='Add Category', command=AddCat)
         addCat.grid(row=7, column=2)
 
         # row 8
-        desVar = StringVar(self.root)
-        desVar.set("Please Select")
+        self.desVar = StringVar(self.root)
+        self.desVar.set("Please Select")
         desLabel = Label(self.root, text="Designation")
         desLabel.grid(row=8, column=0)
-        DesDrop = OptionMenu(self.root, desVar, 'Designations')
+        DesDrop = OptionMenu(self.root, self.desVar, *self.Designations)
         DesDrop.grid(row=8, column=1, padx=1, pady=1)
         # row 9
         estStuLabel = Label(self.root, text="Estimated # of Students")
         estStuLabel.grid(row=9, column=0)
-        self.description = Entry(self.root)
-        self.description.grid(row=9, column=1)
+        self.estNumStu = Entry(self.root)
+        self.estNumStu.grid(row=9, column=1)
         # row 10
-        majVar = StringVar(self.root)
-        majVar.set("Please Select")
+        # gets the majors from the database
+        getMajors = "SELECT Major FROM Major"
+        self.cursor.execute(getMajors)
+        majorsArrayTemp = self.cursor.fetchall()
+        majorsArray = []
+        for m in majorsArrayTemp:
+            majorsArray.append(m[0])
+
+        self.majVar = StringVar(self.root)
+        self.majVar.set("Please Select")
         majorLabel = Label(self.root, text="Major Requirement")
         majorLabel.grid(row=10, column=0)
-        MajDrop = OptionMenu(self.root, majVar, 'Designations')
+        MajDrop = OptionMenu(self.root, self.majVar, *majorsArray)
         MajDrop.grid(row=10, column=1, padx=1, pady=1)
         # row 11
-        yearVar = StringVar(self.root)
-        yearVar.set("Please Select")
+        self.yearVar = StringVar(self.root)
+        self.yearVar.set("Please Select")
         yearLabel = Label(self.root, text="Year Requirement")
         yearLabel.grid(row=11, column=0)
-        YearDrop = OptionMenu(self.root, yearVar, 'Designations')
+        YearDrop = OptionMenu(self.root, self.yearVar, *self.Years)
         YearDrop.grid(row=11, column=1, padx=1, pady=1)
         # row 11
-        depVar = StringVar(self.root)
-        depVar.set("Please Select")
+        self.depVar = StringVar(self.root)
+        self.depVar.set("Please Select")
         departmentLabel = Label(self.root, text="Department Requirement")
         departmentLabel.grid(row=12, column=0)
-        DepDrop = OptionMenu(self.root, depVar, 'Designations')
+        DepDrop = OptionMenu(self.root, self.depVar, *self.Departments)
         DepDrop.grid(row=12, column=1, padx=1, pady=1)
         # row 12
         back = Button(self.root, text='Back', command=self.AdminMainPage)
@@ -371,48 +414,41 @@ class App:
     def SubmitProj(self):
         self.Connect()
 
-        user = self.eUser.get()
-        email = self.eEmail.get()
-        password = self.ePass.get()
-        cPassword = self.eCPass.get()
+        categoriesString = ''
+        for c in self.CategoriesSelected:
+            categoriesString += c + ','
 
-        if user == '':
-            messagebox.showwarning("Whoops!", "Please enter a username")
+        projName = self.projName.get()
+        advisorName = self.advisorName.get()
+        advisorEmail = self.advisorEmail.get()
+        description = self.description.get("1.0", END)
+        categories = categoriesString
+        designation = self.desVar.get()
+        estNumStu = self.estNumStu.get()
+        majorRequirement = self.majVar.get()
+        yearRequirement = self.yearVar.get()
+        depRequirement = self.depVar.get()
+
+        # check all fields must be filled
+        if projName == '' or advisorName == '' or advisorEmail == '' or description == '' or categories == '' or designation == '' or estNumStu == '':
+            messagebox.showwarning("Not all fields are filled!")
             return
 
-        if email == '':
-            messagebox.showwarning("Whoops!", "Please enter an Email")
-            return
-
-        if password == '' or cPassword == '':
-            messagebox.showwarning(
-                "Whoops!", "Please fill out the password forms")
-            return
-
-        if password != cPassword:
-            messagebox.showwarning("Whoops!", "Make sure your passwords match")
-            return
-
-        userCheck = "SELECT Username FROM User WHERE Username = %s"
-        myUserCheck = self.cursor.execute(userCheck, (user,))
-
-        emailCheck = "SELECT Email FROM User WHERE Email = %s"
-        myEmailCheck = self.cursor.execute(emailCheck, (email,))
-
-        if myUserCheck >= 1:
-            messagebox.showwarning(
-                "Whoops!", "This username is already in use! Please choose another username.")
-        elif myEmailCheck >= 1:
-            messagebox.showwarning(
-                "Whoops!", "This email is already in use! Please choose another email.")
+        # check project name is unique
+        projNameCheck = "SELECT PName FROM Projects WHERE PName = %s"
+        myProjNameCheck = self.cursor.execute(projNameCheck, (projName,))
+        if myProjNameCheck >= 1:
+            messageBox.showwarning("This Project Name is Taken")
         else:
-            sql = 'INSERT INTO User (Username, Password, Email) VALUES (%s, %s, %s)'
-            self.cursor.execute(sql, (user, password, email))
+            sql = 'INSERT INTO Projects (PName, Advisor_Name, Description, Category, Designation, EstimatedNum, Requirements) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+            requirements = majorRequirement + ", " + yearRequirement + ", " + depRequirement
+            self.cursor.execute(sql, (projName, advisorName, description,
+                                      categories, designation, estNumStu, requirements))
             messagebox.showinfo("Congratulations!",
-                                "You have successfully registered!")
+                                "You have successfully added a project!")
             self.db.commit()
             self.root.destroy()
-            self.LoginPage()
+            self.AdminMainPage()
 
         self.cursor.close()
         self.db.close()
