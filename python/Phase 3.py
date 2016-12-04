@@ -1,5 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
+import datetime
+import time
 import pymysql
 
 
@@ -280,17 +282,18 @@ class App:
             Label(self.innerframe, text="Type", bg='light gray', relief=RIDGE,
                   width=15, anchor=W).grid(row=8, column=4, sticky=W + N + S, pady=2)
 
+            buttons = dict()
             for item in stuff:
                 variable = item[0]
                 # old code
-                NewestB = Button(self.innerframe, text=item[
-                    0], command=lambda *args: self.courseview(variable, item[1]), anchor=W,
+                buttons[rownum] = Button(self.innerframe, text=item[
+                    0], command=lambda item=item: self.courseview(item[0], item[1]), anchor=W,
                     relief=RIDGE, width=45, height=1)
                 # NewestB = Button(self.innerframe, text=item[
                 #                  0], command=self.courseview(variable, item[1]), anchor=W, relief=RIDGE, width=45, height=1)
                 #NewestB.pack(side = TOP)
 
-                NewestB.grid(row=rownum, column=1, sticky=W + E + S + N, columnspan=3)
+                buttons[rownum].grid(row=rownum, column=1, sticky=W + E + S + N, columnspan=3)
                 Label(self.innerframe, text=item[1], relief=RIDGE, width=15, anchor=W,
                       height=1).grid(row=rownum, ipady=2, column=4, sticky=W + E + S + N)
                 rownum += 1
@@ -396,7 +399,7 @@ class App:
 
             back = Button(self.root, text="Back", command=self.BacktoMainPage)
             back.grid(row=13, column=0)
-            applyToProject = Button(self.root, text="Apply", command=self.ApplyToProject(name, self.username))
+            applyToProject = Button(self.root, text="Apply", command=lambda: self.ApplyToProject(name, self.username))
             applyToProject.grid(row=13, column=2)
 
             self.root.mainloop()
@@ -405,12 +408,24 @@ class App:
             back.grid(row=13, column=0)
 
     def ApplyToProject(self, name, user):
-        sql = "INSERT INTO Apply (Student_Name, Project_Name) VALUES (%s, %s)"
-        applyCheck = self.cursor.execute(sql, user, name)
+        print('wat')
+        self.Connect()
+        sql = 'SELECT Student_Name, Project_Name FROM Apply WHERE Student_name = %s AND Project_Name = %s'
+        applyCheck = self.cursor.execute(sql, (user, name))
         if applyCheck >= 1:
             messagebox.showwarning("Error", "Already Submited Application to this Project!")
+            return
         else:
+            curDate = time.strftime("%Y/%m/%d")
+            status = 'pending'
+            sql = 'INSERT INTO Apply (Student_Name, Project_Name, Date, Status) VALUES (%s, %s, %s, %s)'
+            self.cursor.execute(sql, (user, name, curDate, status))
             self.BacktoMainPage()
+            self.db.commit()
+            return
+
+        self.cursor.close()
+        self.db.close()
 
     def MePage(self):
         self.cursor.close()
