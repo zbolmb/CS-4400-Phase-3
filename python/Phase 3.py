@@ -6,71 +6,71 @@ import pymysql
 class App:
 
     def __init__(self):
-        self.reg = 0
+        # self.reg = 0
         self.Years = ['Freshman', 'Sophomore', 'Junior', 'Senior']
         self.LoginPage()
 
     def LoginPage(self):
-        if self.reg == 1:
-            self.rootreg.destroy()
-            self.rootreg = 0
-        else:
-            self.rootreg = 0
+        # if self.reg == 1:
+        #     self.rootreg.destroy()
+        #     self.rootreg = 0
+        # else:
+        #     self.rootreg = 0
 
-        self.rootWin = Tk()
-        self.rootWin.wm_title("CS 4400 Phase 3")
+        self.root = Tk()
+        self.root.wm_title("CS 4400 Phase 3")
 
-        Label(self.rootWin, text='Username').grid(row=1, column=0, sticky=E)
-        Label(self.rootWin, text='Password').grid(row=2, column=0, sticky=E)
+        Label(self.root, text='Username').grid(row=1, column=0, sticky=E)
+        Label(self.root, text='Password').grid(row=2, column=0, sticky=E)
 
-        self.eUsername = Entry(self.rootWin)
+        self.eUsername = Entry(self.root)
         self.eUsername.grid(row=1, column=1)
 
-        self.ePassword = Entry(self.rootWin)
+        self.ePassword = Entry(self.root)
         self.ePassword.grid(row=2, column=1)
 
-        register = Button(self.rootWin, text='Register', command=self.Register)
+        register = Button(self.root, text='Register', command=self.Register)
         register.grid(row=3, column=1, sticky=E)
 
-        login = Button(self.rootWin, text='Login', command=self.LoginCheck)
+        login = Button(self.root, text='Login', command=self.LoginCheck)
         login.grid(row=3, column=2)
 
-        self.rootWin.mainloop()
+        self.root.mainloop()
 
     # To create a new window
     # self.rootWin.destroy()
     # self.root = Tk()
     # self.root.wm_title("CS 4400 Phase 3")
     def Register(self):
-        self.rootWin.destroy()
-        self.rootreg = Tk()
-        self.rootreg.wm_title("New Student Registration")
-        self.reg = 1
-        Label(self.rootreg, text='Username').grid(row=1, column=0, sticky=W)
-        Label(self.rootreg, text='Email').grid(row=2, column=0, sticky=W)
-        Label(self.rootreg, text='Password').grid(row=3, column=0, sticky=W)
-        Label(self.rootreg, text='Confirm Password').grid(
+        self.root.destroy()
+        self.root = Tk()
+        self.root.wm_title("New Student Registration")
+        # self.reg = 1
+        Label(self.root, text='Username').grid(row=1, column=0, sticky=W)
+        Label(self.root, text='Email').grid(row=2, column=0, sticky=W)
+        Label(self.root, text='Password').grid(row=3, column=0, sticky=W)
+        Label(self.root, text='Confirm Password').grid(
             row=4, column=0, sticky=W)
 
-        self.eUser = Entry(self.rootreg)
+        self.eUser = Entry(self.root)
         self.eUser.grid(row=1, column=1)
 
-        self.eEmail = Entry(self.rootreg)
+        self.eEmail = Entry(self.root)
         self.eEmail.grid(row=2, column=1)
 
-        self.ePass = Entry(self.rootreg)
+        self.ePass = Entry(self.root)
         self.ePass.grid(row=3, column=1)
 
-        self.eCPass = Entry(self.rootreg)
+        self.eCPass = Entry(self.root)
         self.eCPass.grid(row=4, column=1)
 
-        cancel = Button(self.rootreg, text='Cancel', command=self.LoginPage)
+        cancel = Button(self.root, text='Cancel', command=self.LoginPage)
         cancel.grid(row=6, column=1, sticky=E)
 
-        register = Button(self.rootreg, text='Register', command=self.RegisterNew)
+        register = Button(self.root, text='Register', command=self.RegisterNew)
         register.grid(row=6, column=2)
 
-        self.rootreg.mainloop()
+        self.root.mainloop()
 
     def RegisterNew(self):
 
@@ -126,6 +126,7 @@ class App:
         self.Connect()
 
         user = self.eUsername.get()
+        self.username = self.eUsername.get()
         password = self.ePassword.get()
 
         userCheck = "SELECT Username, Password FROM User WHERE Username = %s AND Password = %s"
@@ -135,10 +136,19 @@ class App:
             getAdmin = "SELECT UserType FROM User WHERE Username = %s AND Password = %s"
             self.cursor.execute(getAdmin, (user, password))
             admin = self.cursor.fetchone()[0]
-            self.rootWin.destroy()
+            self.root.destroy()
             if admin == 1:
                 self.AdminMainPage()
             else:
+                getMajor = "SELECT Major FROM User WHERE Username = %s AND Password = %s"
+                self.cursor.execute(getMajor, (user, password))
+                self.studentMajor = self.cursor.fetchone()[0]
+                getDep = "SELECT Department FROM Major WHERE Name = %s"
+                self.cursor.execute(getDep, (self.studentMajor, ))
+                self.studentDepartment = self.cursor.fetchone()[0]
+                getYear = "SELECT Year FROM User WHERE Username = %s AND Password = %s"
+                self.cursor.execute(getYear, (user, password))
+                self.studentYear = self.cursor.fetchone()[0]
                 self.MainPage()
         else:
             messagebox.showwarning(
@@ -147,6 +157,7 @@ class App:
         self.cursor.close()
 
     def MainPage(self):
+        i = 1
         self.root = Tk()
         self.root.wm_title("Main Page")
         self.cursor = self.db.cursor()
@@ -222,72 +233,83 @@ class App:
         Coursearr = []
         for item in AllCourse:
             Coursearr.append((item[0], 'Course'))
-        AllCourse = Coursearr
+        self.AllCourse = Coursearr
         AllProj = self.cursor.execute("SELECT Name from Project")
         AllProj = self.cursor.fetchall()
         ProjArray = []
         for item in AllProj:
             ProjArray.append((item[0], "Project"))
-        AllProj = ProjArray
+        self.AllProj = ProjArray
 
-        AllCourseProj = []
-        for item in AllProj:
-            AllCourseProj.append(item)
-        for item in AllCourse:
-            AllCourseProj.append(item)
+        self.AllCourseProj = []
+        for item in self.AllProj:
+            self.AllCourseProj.append(item)
+        for item in self.AllCourse:
+            self.AllCourseProj.append(item)
 
         Label(self.root, text="").grid(row=7, column=0, sticky=W)
 
-        rownum = 9
-        frame = Frame(self.root, width=300, height=100)
-        frame.grid(row=9, column=0, columnspan=4)
-        innerframe = Frame(frame)
-        vscrollbar = Scrollbar(frame, orient=VERTICAL)
-        vscrollbar.pack(side=RIGHT, fill=Y)
-        canvas = Canvas(frame, bd=0, highlightthickness=0, yscrollcommand=vscrollbar.set)
-        Label(innerframe, text="Name", bg='light gray', relief=RIDGE, width=65,
-              anchor=W).grid(row=8, column=1, sticky=W + N + S, pady=2)
-        Label(innerframe, text="Type", bg='light gray', relief=RIDGE, width=15,
-              anchor=W).grid(row=8, column=4, sticky=W + N + S, pady=2)
-
-        canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
-        vscrollbar.config(command=canvas.yview)
-
-        # reset the view
-        canvas.xview_moveto(0)
-        canvas.yview_moveto(0)
-
-        # create a frame inside the canvas which will be scrolled with it
-        interior_id = canvas.create_window(0, 0, window=innerframe, anchor=NW)
+        #vscrollbar.grid(row = 9, column = 4)
+        self.frame = Frame(self.root)
+        self.frame.grid(row=9, column=0, columnspan=7)
+        self.canvas = Canvas(self.frame, bd=0, highlightthickness=0,  borderwidth=0)
 
         def _configure_interior(event):
             # update the scrollbars to match the size of the inner frame
-            size = (innerframe.winfo_reqwidth(), innerframe.winfo_reqheight())
-            canvas.config(scrollregion="0 0 %s %s" % size)
-            if innerframe.winfo_reqwidth() != canvas.winfo_width():
+            size = (self.innerframe.winfo_reqwidth(), self.innerframe.winfo_reqheight())
+            self.canvas.config(scrollregion="0 0 %s %s" % size)
+            if self.innerframe.winfo_reqwidth() != self.canvas.winfo_width():
                 # update the canvas's width to fit the inner frame
-                canvas.config(width=innerframe.winfo_reqwidth())
+                self.canvas.config(width=self.innerframe.winfo_reqwidth())
 
-        innerframe.bind('<Configure>', _configure_interior)
+        def addcoursesproject(stuff):
+            vscrollbar = Scrollbar(self.frame, orient=VERTICAL)
+            vscrollbar.pack(side=RIGHT, fill=Y, expand=FALSE)
+            self.canvas.config(yscrollcommand=vscrollbar.set)
 
-        def _configure_canvas(event):
-            if innerframe.winfo_reqwidth() != canvas.winfo_width():
-                # update the inner frame's width to fill the canvas
-                canvas.itemconfigure(interior_id, width=canvas.winfo_width())
-        canvas.bind('<Configure>', _configure_canvas)
+            self.innerframe = innerframe = Frame(self.canvas)
+            #vscrollbar = Scrollbar(innerframe, orient=VERTICAL)
+            #vscrollbar.pack(side = RIGHT, fill = Y, expand = FALSE)
+            self.canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
+            vscrollbar.config(command=self.canvas.yview)
 
-        for item in AllCourseProj:
-            NewestB = Button(innerframe, text=item[0], command=self.courseview,
-                             anchor=W, relief=RIDGE, width=45, justify=LEFT, height=1)
-            NewestB.grid(row=rownum, column=1, sticky=W + E + S + N, columnspan=3)
-            Label(innerframe, text=item[1], relief=RIDGE, width=15, anchor=W, height=1).grid(
-                row=rownum, ipady=2, column=4, sticky=W + E + S + N)
-            rownum += 1
+            interior_id = self.canvas.create_window(4, 4, window=self.innerframe, anchor=NW)
+            rownum = 9
+            Label(self.innerframe, text="Name", bg='light gray', relief=RIDGE,
+                  width=65, anchor=W).grid(row=8, column=1, sticky=W + N + S, pady=2)
+            Label(self.innerframe, text="Type", bg='light gray', relief=RIDGE,
+                  width=15, anchor=W).grid(row=8, column=4, sticky=W + N + S, pady=2)
 
-        innerframe.pack(side=LEFT)
+            for item in stuff:
+                variable = item[0]
+                # old code
+                NewestB = Button(self.innerframe, text=item[
+                    0], command=lambda *args: self.courseview(variable, item[1]), anchor=W,
+                    relief=RIDGE, width=45, height=1)
+                # NewestB = Button(self.innerframe, text=item[
+                #                  0], command=self.courseview(variable, item[1]), anchor=W, relief=RIDGE, width=45, height=1)
+                #NewestB.pack(side = TOP)
+
+                NewestB.grid(row=rownum, column=1, sticky=W + E + S + N, columnspan=3)
+                Label(self.innerframe, text=item[1], relief=RIDGE, width=15, anchor=W,
+                      height=1).grid(row=rownum, ipady=2, column=4, sticky=W + E + S + N)
+                rownum += 1
+            canvas = self.canvas
+            self.innerframe.bind('<Configure>', lambda event, canvas=canvas: _configure_interior(self.canvas))
+
+        if i == 1:
+            addcoursesproject(self.AllCourseProj)
+            i = 2
 
         def ApplyFilter():
-            print("To do")
+            if ProjCorBo.get() == "Project":
+                self.innerframe.destroy()
+                self.canvas.destroy()
+                self.frame.destroy()
+                self.frame = Frame(self.root)
+                self.frame.grid(row=9, column=0, columnspan=7)
+                self.canvas = Canvas(self.frame, bd=0, highlightthickness=0,  borderwidth=0)
+                addcoursesproject(self.AllProj)
 
         def ResetFilter():
             DesVar.set("Please Select")
@@ -297,6 +319,15 @@ class App:
             ProjCorBo.set("Both")
             self.CategoriesSelected.clear()
             categoryLabelText.set('')
+            self.eTitle.delete(0, END)
+            self.innerframe.destroy()
+            self.canvas.destroy()
+            self.frame.destroy()
+            self.frame = Frame(self.root)
+            self.frame.grid(row=9, column=0, columnspan=7)
+            self.canvas = Canvas(self.frame, bd=0, highlightthickness=0,  borderwidth=0)
+            addcoursesproject(self.AllCourseProj)
+            self.canvas.yview_moveto(0)
 
         ApplyFil = Button(self.root, text="Apply Filter", command=ApplyFilter)
         ApplyFil.grid(row=6, column=5)
@@ -305,8 +336,81 @@ class App:
 
         self.root.mainloop()
 
-    def courseview(self):
-        print('do you plz')
+    def BacktoMainPage(self):
+        self.root.destroy()
+        self.MainPage()
+
+    # name: name of project/course
+    # type: either project or course
+    # TODO WHERE Name = %s gives an error ""
+    def courseview(self, name, type):
+        self.root.destroy()
+        self.root = Tk()
+        self.root.wm_title(type)
+        self.Connect()
+        print(name)
+        if type == 'Project':
+            getAdvisorName = "SELECT Advisor_Name FROM Project WHERE Name = %s"
+            self.cursor.execute(getAdvisorName, (name, ))
+            advisorName = self.cursor.fetchone()[0]
+            getAdvisorEmail = "SELECT Advisor_Email FROM Project WHERE Name = %s"
+            self.cursor.execute(getAdvisorEmail, (name, ))
+            advisorEmail = self.cursor.fetchone()[0]
+            getDescription = "SELECT Description FROM Project WHERE Name = %s"
+            self.cursor.execute(getDescription, (name, ))
+            description = self.cursor.fetchone()[0]
+            getDesignation = "SELECT Designation_Name FROM Project WHERE Name = %s"
+            self.cursor.execute(getDesignation, (name, ))
+            designation = self.cursor.fetchone()[0]
+            getCategories = "SELECT Project_Name FROM Project_is_category WHERE Project_Name = %s"
+            self.cursor.execute(getCategories, (name, ))
+            categoriesArr = self.cursor.fetchone()
+            categories = ''
+            if (not categoriesArr == None):
+                for c in categoriesArr:
+                    categories += ", " + c
+            getRequirements = "SELECT Requirement FROM Project_requirements WHERE Name = %s"
+            self.cursor.execute(getRequirements, (name, ))
+            requirementsArr = self.cursor.fetchone()
+            requirements = ''
+            if (not requirementsArr == None):
+                for r in requirementsArr:
+                    requirements += ", " + r
+            getEstimatedNum = "SELECT EstimatedNum FROM Project WHERE Name = %s"
+            self.cursor.execute(getEstimatedNum, (name, ))
+            estimatedNum = self.cursor.fetchone()[0]
+
+            Label(self.root, text=name).grid(row=1, column=1)
+            Label(self.root, text="Advisor:").grid(row=2, column=0)
+            Label(self.root, text=advisorName + " (" + advisorEmail + ")").grid(row=2, column=1)
+            Label(self.root, text="Description:").grid(row=3, column=0)
+            Label(self.root, text=description).grid(row=4, column=0, rowspan=5)
+            Label(self.root, text="Designation:").grid(row=9, column=0)
+            Label(self.root, text=designation).grid(row=9, column=1)
+            Label(self.root, text="Category:").grid(row=10, column=0)
+            Label(self.root, text=categories).grid(row=10, column=1)
+            Label(self.root, text="Requirements:").grid(row=11, column=0)
+            Label(self.root, text=requirements).grid(row=11, column=1)
+            Label(self.root, text="Estimated Number of Students:").grid(row=12, column=0)
+            Label(self.root, text=estimatedNum).grid(row=12, column=1)
+
+            back = Button(self.root, text="Back", command=self.BacktoMainPage)
+            back.grid(row=13, column=0)
+            applyToProject = Button(self.root, text="Apply", command=self.ApplyToProject(name, self.username))
+            applyToProject.grid(row=13, column=2)
+
+            self.root.mainloop()
+        else:
+            back = Button(self.root, text="Back", command=self.BacktoMainPage)
+            back.grid(row=13, column=0)
+
+    def ApplyToProject(self, name, user):
+        sql = "INSERT INTO Apply (Student_Name, Project_Name) VALUES (%s, %s)"
+        applyCheck = self.cursor.execute(sql, user, name)
+        if applyCheck >= 1:
+            messagebox.showwarning("Error", "Already Submited Application to this Project!")
+        else:
+            self.BacktoMainPage()
 
     def MePage(self):
         self.cursor.close()
@@ -323,12 +427,63 @@ class App:
                         padx=5, pady=5, width=30, height=4)
         mePage.grid(row=3, column=0, sticky=W + E)
 
-    def BacktoMainPage(self):
-        self.root.destroy()
-        self.MainPage()
-
     def StudEdPro(self):
-        print("to do")
+        self.Connect()
+        self.root.destroy()
+        self.root = Tk()
+        self.root.wm_title("Edit Profile")
+
+        Label(self.root, text="Edit Profile").grid(row=1, column=1, sticky=W + E)
+
+        getMajors = "SELECT Name FROM Major"
+        self.cursor.execute(getMajors)
+        majorsArrayTemp = self.cursor.fetchall()
+        majorsArray = []
+        for m in majorsArrayTemp:
+            majorsArray.append(m[0])
+        self.majVar = StringVar(self.root)
+        self.majVar.set(self.studentMajor)
+        Label(self.root, text="Major:").grid(row=1, column=0)
+        MajDrop = OptionMenu(self.root, self.majVar, *majorsArray)
+        MajDrop.grid(row=1, column=1, padx=1, pady=1)
+
+        self.yearVar = StringVar(self.root)
+        self.yearVar.set(self.studentYear)
+        yearLabel = Label(self.root, text="Year:")
+        yearLabel.grid(row=2, column=0)
+        YearDrop = OptionMenu(self.root, self.yearVar, *self.Years)
+        YearDrop.grid(row=2, column=1, padx=1, pady=1)
+
+        Label(self.root, text="Department:").grid(row=3, column=0)
+        Label(self.root, text=self.studentDepartment).grid(row=3, column=1)
+
+        back = Button(self.root, text='Back', command=self.MePage)
+        back.grid(row=4, column=0)
+        submit = Button(self.root, text='Submit', command=self.SubmitStudEd)
+        submit.grid(row=4, column=2)
+
+    def SubmitStudEd(self):
+        # self.Connect()
+
+        major = self.majVar.get()
+        year = self.yearVar.get()
+
+        if not major == self.studentMajor:
+            sql = "UPDATE User SET Major = %s WHERE Username = %s"
+            self.cursor.execute(sql, (major, self.username))
+            self.studentMajor = major
+            getDep = "SELECT Department FROM Major WHERE Name = %s"
+            self.cursor.execute(getDep, (self.studentMajor, ))
+            self.studentDepartment = self.cursor.fetchone()[0]
+        if not year == self.studentYear:
+            sql = "UPDATE User SET Year = %s WHERE Username = %s"
+            self.cursor.execute(sql, (year, self.username))
+            self.studentYear = year
+
+        self.db.commit()
+        self.MePage()
+        self.cursor.close()
+        self.db.close()
 
     def StuViewApp(self):
         print("to do")
@@ -354,28 +509,6 @@ class App:
 
         self.root.mainloop()
 
-    # Chris Lung
-    def ViewAppsPage(self):
-        self.root = Tk()
-        self.root.wm_title("Applications")
-        self.cursor = self.db.cursor()
-        back = Button(self.root, text='Back', command=self.AdminMainPage)
-        back.grid(row=3, column=1)
-        accept = Button(self.root, text='Accept', command=self.accept)
-        #reject = Button(self.root, text='Reject', command=self.reject)
-
-        getCourse = "SELECT CName,Cnumber FROM Courses"
-        self.cursor.execute(getCourse)
-        course1 = self.cursor.fetchall()
-
-        # grid layout?
-        # make sure commands are there
-        print(course1)
-        print('TODO')
-
-    def accept(self):
-        print("accepted, to do")
-
         # Chris Lung
     def ViewAppsPage(self):
         self.root.destroy()
@@ -385,24 +518,25 @@ class App:
         getApp = "SELECT Project_Name, Major, Year, Status FROM Apply,User WHERE Apply.Student_Name = User.Username"
         self.cursor.execute(getApp)
         app = self.cursor.fetchall()
-        print(app)
+        # print(app)
         Label(self.root, text='Application').grid(row=0, column=1)
         Label(self.root, text='Project').grid(row=1, column=1)
         Label(self.root, text='Applicant Major').grid(row=1, column=2)
         Label(self.root, text='Applicant Year').grid(row=1, column=3)
         Label(self.root, text='Status').grid(row=1, column=4)
 
-        scrollbar = Scrollbar(self.root)
-        scrollbar.grid(column=5)
+        #scrollbar = Scrollbar(self.root)
+        # scrollbar.grid(column=5)
 
         v = IntVar(self.root)
         v.set = 0
         a = 5
         self.checkboxValues = dict()
+        # FIX THIS BELOW::::
+        # default shaded in boxes are anak, crew, fhs (1,3,4)
         for each in app:
-            self.checkboxValues[a] = Variable()
-            self.checkboxValues[a].set(0)
-            l = Checkbutton(self.root, variable=self.checkboxValues[a])
+            self.checkboxValues[each[0]] = Variable(0)
+            l = Checkbutton(self.root, variable=self.checkboxValues[each[0]])
             l.grid(row=a, column=0)
             Label(text=each[0], relief=RIDGE, width=25).grid(row=a, column=1)
             Label(text=each[1], relief=RIDGE, width=25).grid(row=a, column=2)
@@ -418,19 +552,21 @@ class App:
         reject = Button(self.root, text='Reject', command=self.reject)
         reject.grid(row=a, column=4)
 
-        print('TODO')
-
     def accept(self):
-        # if radio button is selected, update status on DB to accepted using SQL
-        # if v == each[0]:
-        #     print("this will update")
-        #     # update using SQL
-        # print("accepted, to do")
-        for rowNum, value in self.checkboxValues.items():
-            print(str(rowNum) + ' ' + str(value.get()))
+        for projName, value in self.checkboxValues.items():
+            newProjName = projName
+            if value.get() == "1":
+                self.cursor.execute("UPDATE Apply SET Status = 'Accepted' WHERE Project_Name = (%s)", (newProjName))
+                self.db.commit()
+                print(newProjName, "'s status has been updated to Accepted!")
 
     def reject(self):
-        print("rejected, to do")
+        for projName, value in self.checkboxValues.items():
+            newProjName = projName
+            if value.get() == "1":
+                self.cursor.execute("UPDATE Apply SET Status = 'Rejected' WHERE Project_Name = (%s)", (newProjName))
+                self.db.commit()
+                print(newProjName, "'s status has been updated to Rejected!")
 
     # Chris Lung
     def ViewProjReportPage(self):
@@ -444,7 +580,7 @@ class App:
         Label(self.root, text="Number of Applicants").grid(row=1, column=1)
 
         getProjectName = "SELECT Name FROM Project"
-        getInfo = "SELECT Project_name, Count('Student_Name') FROM Apply, Project WHERE Apply.Project_name = Project.name GROUP BY Project_name ORDER BY Count('Student_Name') DESC"
+        getInfo = "SELECT Project_name, Count('Student_Name') FROM Apply, Project WHERE Apply.Project_name = Project.name GROUP BY Project_name ORDER BY Count('Student_Name') DESC Limit 10"
         # MAKE SURE SQL STATEMENT SORTS BY TOP PROJECT APPLICATIONS
         self.cursor.execute(getProjectName)
         projectName = self.cursor.fetchall()
@@ -478,16 +614,36 @@ class App:
         self.root = Tk()
         self.root.wm_title("Application Report")
 
-        getAppReport = "SELECT Project_Name, Major, Year, Status FROM Apply,User WHERE Apply.Student_Name = User.Username"
-        # project, number of applicants, accept rate, top 3 major
+        totalApps = "Select Count(Distinct Project_Name,Student_Name) From Apply"
+        self.cursor.execute(totalApps)
+        numTotalApps = self.cursor.fetchone()
+        numTotalApps = str(numTotalApps)
+        print(numTotalApps)
+        totalAcceptedApps = "Select Count(Distinct Project_Name,Student_Name) From Apply WHERE Status = 'Accepted'"
+        tester = self.cursor.execute(totalAcceptedApps)
+        numTotalAppsAccepted = self.cursor.fetchone()
+        numTotalAppsAccepted = str(numTotalAppsAccepted)
+        print(numTotalAppsAccepted)
+        # Error below - weird formmating with number uses "(10)" isntead of 10. Also splits across rows and looks weird
+        Label(self.root, text="There are a total of " + numTotalApps + " applications and " +
+              numTotalAppsAccepted + " accepted applicants").grid(row=0, column=1, sticky=N)
+
+        #getAppReport = "SELECT Project_Name, Count(Student_Name),(Select (SELECT COUNT('Status') FROM Apply WHERE Status ="'Accepted'")/(Select Count('Status')) From Apply), Project GROUP BY Project_name"
+
+        # Below - just dummy data for table creation, real SQL statement is above but isn't correct
+        getAppReport = "SELECT Project_Name, Count(Student_Name),Date,Status From Apply Where Project_Name = Project_Name Group by Project_Name"
+
+        # Correct Statisic SQL: (Select Distinct Project_Name, (SELECT COUNT('Status') FROM Apply WHERE Status =  'Accepted' And A.Project_Name = Project_Name)/(Select Count('Status') From Apply Where A.Project_Name = Project_Name) from Apply As A)
+        # Above - need to find a way to make stats reflective of each individual project
         self.cursor.execute(getAppReport)
         appReport = self.cursor.fetchall()
         print(appReport)
-        Label(self.root, text='Application Report').grid(row=0, column=1)
+
+        Label(self.root, text='Application Project Report').grid(row=1, column=1)
         Label(self.root, text='Project').grid(row=1, column=1)
-        Label(self.root, text='# of Applicants').grid(row=1, column=2)
-        Label(self.root, text='Accept Rate').grid(row=1, column=3)
-        Label(self.root, text='Top 3 Major').grid(row=1, column=4)
+        Label(self.root, text='# of Applicants').grid(row=2, column=2)
+        Label(self.root, text='Accept Rate').grid(row=2, column=3)
+        Label(self.root, text='Top 3 Major').grid(row=2, column=4)
 
         a = 5
         for each in appReport:
@@ -605,7 +761,7 @@ class App:
         DepDrop = OptionMenu(self.root, self.depVar, *self.Departments)
         DepDrop.grid(row=12, column=1, padx=1, pady=1)
         # row 12
-        back = Button(self.root, text='Back', command=self.AdminMainPage)
+        back = Button(self.root, text='Back', command=self.BacktoAdminPage)
         back.grid(row=13, column=0)
         submit = Button(self.root, text='Submit', command=self.SubmitProj)
         submit.grid(row=13, column=2)
@@ -735,7 +891,7 @@ class App:
         self.estNumStu = Entry(self.root)
         self.estNumStu.grid(row=8, column=1)
 
-        back = Button(self.root, text='Back', command=self.AdminMainPage)
+        back = Button(self.root, text='Back', command=self.BacktoAdminPage)
         back.grid(row=13, column=0)
         submit = Button(self.root, text='Submit', command=self.SubmitCourse)
         submit.grid(row=13, column=2)
@@ -783,7 +939,10 @@ class App:
         self.db.close()
 
     def Logout(self):
-        print('TODO')
+        self.eUser = ''
+        self.ePass = ''
+        self.root.destroy()
+        self.LoginPage()
 
     def Connect(self):
         try:
