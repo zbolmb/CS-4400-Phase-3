@@ -5,20 +5,19 @@ import pymysql
 
 class App:
 
-    def __init__(self):
-        self.Categories = ['computing for good', 'doing good for your neighborhood',
-                           'reciprocal teaching and learning', 'urban development', 'adaptive learning',
-                           'technology for social good', 'substainable communities', 'crowd-sourced',
-                           'collaborative action']
 
-        self.Designations = ['Sustainable Communities', 'Community']
+def __init__(self):
+        self.reg = 0
         self.Years = ['Freshman', 'Sophomore', 'Junior', 'Senior']
-        self.Departments = ['College of Computing', 'College of Design', 'College of Engineering',
-                            'College of Sciences', 'Ivan Allen College of Liberal Arts',
-                            'Scheller College of Business']
         self.LoginPage()
 
     def LoginPage(self):
+        if self.reg == 1:
+            self.rootreg.destroy()
+            self.rootreg = 0
+        else:
+            self.rootreg = 0
+
         self.rootWin = Tk()
         self.rootWin.wm_title("CS 4400 Phase 3")
 
@@ -45,34 +44,34 @@ class App:
     # self.root.wm_title("CS 4400 Phase 3")
     def Register(self):
         self.rootWin.destroy()
-        self.root = Tk()
-        self.root.wm_title("New Student Registration")
-
-        Label(self.root, text='Username').grid(row=1, column=0, sticky=W)
-        Label(self.root, text='Email').grid(row=2, column=0, sticky=W)
-        Label(self.root, text='Password').grid(row=3, column=0, sticky=W)
-        Label(self.root, text='Confirm Password').grid(
+        self.rootreg = Tk()
+        self.rootreg.wm_title("New Student Registration")
+        self.reg = 1
+        Label(self.rootreg, text='Username').grid(row=1, column=0, sticky=W)
+        Label(self.rootreg, text='Email').grid(row=2, column=0, sticky=W)
+        Label(self.rootreg, text='Password').grid(row=3, column=0, sticky=W)
+        Label(self.rootreg, text='Confirm Password').grid(
             row=4, column=0, sticky=W)
 
-        self.eUser = Entry(self.root)
+        self.eUser = Entry(self.rootreg)
         self.eUser.grid(row=1, column=1)
 
-        self.eEmail = Entry(self.root)
+        self.eEmail = Entry(self.rootreg)
         self.eEmail.grid(row=2, column=1)
 
-        self.ePass = Entry(self.root)
+        self.ePass = Entry(self.rootreg)
         self.ePass.grid(row=3, column=1)
 
-        self.eCPass = Entry(self.root)
+        self.eCPass = Entry(self.rootreg)
         self.eCPass.grid(row=4, column=1)
 
-        # cancel = Button(self.root, text='Cancel', command=self.LoginPage)
-        # cancel.grid(row=6, column=1, sticky=E)
+        cancel = Button(self.rootreg, text='Cancel', command=self.LoginPage)
+        cancel.grid(row=6, column=1, sticky=E)
 
-        register = Button(self.root, text='Register', command=self.RegisterNew)
+        register = Button(self.rootreg, text='Register', command=self.RegisterNew)
         register.grid(row=6, column=2)
 
-        self.root.mainloop()
+        self.rootreg.mainloop()
 
     def RegisterNew(self):
 
@@ -134,7 +133,7 @@ class App:
         myUserCheck = self.cursor.execute(userCheck, (user, password))
         if myUserCheck == 1:
             messagebox.showinfo("Hello", "Welcome to The Database")
-            getAdmin = "SELECT admin FROM User WHERE Username = %s AND Password = %s"
+            getAdmin = "SELECT UserType FROM User WHERE Username = %s AND Password = %s"
             self.cursor.execute(getAdmin, (user, password))
             admin = self.cursor.fetchone()[0]
             self.rootWin.destroy()
@@ -152,10 +151,14 @@ class App:
         self.root = Tk()
         self.root.wm_title("Main Page")
         self.cursor = self.db.cursor()
+        self.Catnum = 1
+        self.CategoriesSelected = []
 
         def addcatrow():
-            print("hello")
-
+            if CatVar.get() != "Please Select" and not CatVar.get() in self.CategoriesSelected:
+                categoryLabelText.set(categoryLabelText.get() + '\n' + CatVar.get())
+                self.CategoriesSelected.append(CatVar.get())
+                CatVar.set("Please Select")
         # row 1
         mePage = Button(self.root, text='Me', command=self.MePage)
         mePage.grid(row=1, column=0, sticky=W)
@@ -164,17 +167,19 @@ class App:
         Label(self.root, text='Title').grid(row=2, column=0, sticky=W)
         self.eTitle = Entry(self.root)
         self.eTitle.grid(row=2, column=1)
-        Label(self.root, text='Category').grid(row=2, column=2, sticky=W)
-        # Categories = self.cursor.execute("SELECT DISTINCT Category FROM Projects, Courses")
-        # Categories = self.cursor.fetchall()
+        Label(self.root, text='Categories Selected:').grid(row=2, column=2, sticky=W)
+        Label(self.root, text='Category').grid(row=3, column=2, sticky=E)
         CatVar = StringVar(self.root)
         CatVar.set("Please Select")
-        CatDrop = OptionMenu(self.root, CatVar, 'Categories')
-        CatDrop.grid(row=2, column=3, padx=1, pady=1)
-        AddCat = Button(self.root, text="Add Another Category",
+        CatDrop = OptionMenu(self.root, CatVar, *self.Categories)
+        CatDrop.grid(row=3, column=3, padx=1, pady=1)
+        AddCat = Button(self.root, text="Add Selected Category",
                         fg='blue', relief='flat', command=addcatrow)
-        AddCat.grid(row=2, column=4)
-
+        AddCat.grid(row=3, column=4)
+        categoryLabelText = StringVar()
+        categoryLabelText.set("")
+        selectedCategoriesLabel = Label(self.root, textvariable=categoryLabelText, height=6)
+        selectedCategoriesLabel.grid(row=2, column=3)
         Label(self.root, text='Designation').grid(row=3, column=0, sticky=W)
         Label(self.root, text='Major').grid(row=4, column=0, sticky=W)
         Label(self.root, text='Year').grid(row=5, column=0, sticky=W)
@@ -185,14 +190,20 @@ class App:
         YearVar = StringVar(self.root)
         YearVar.set("Please Select")
         YearOpt = ["Freshman", "Sophomore", "Junior", "Senior"]
-        # Designations = self.cursor.execute("SELECT DISTINCT Designation FROM Projects, Courses")
-        # Designations = self.cursor.fetchall()
-        # Majors = self.cursor.execute("SELECT DISTINCT Major FROM Projects, Courses")
-        # Majors = self.cursor.fetchall()
-        DesDrop = OptionMenu(self.root, DesVar, 'Designations')
+        Designations = self.cursor.execute("SELECT DISTINCT Name FROM Designation")
+        Designations = self.cursor.fetchall()
+        Desarray = []
+        for item in Designations:
+            Desarray.append(item[0])
+        Majors = self.cursor.execute("SELECT Name FROM Major")
+        Majors = self.cursor.fetchall()
+        majorArray = []
+        for m in Majors:
+            majorArray.append(m[0])
+        DesDrop = OptionMenu(self.root, DesVar, *Desarray)
         DesDrop.grid(row=3, column=1, padx=1, pady=1)
 
-        MajDrop = OptionMenu(self.root, MaVar, 'Majors')
+        MajDrop = OptionMenu(self.root, MaVar, *majorArray)
         MajDrop.grid(row=4, column=1, padx=1, pady=1)
 
         YearDrop = OptionMenu(self.root, YearVar, *YearOpt)
@@ -207,6 +218,75 @@ class App:
         ProjCorButtonTwo = Radiobutton(
             self.root, text="Both", variable=ProjCorBo, value="Both").grid(row=5, column=5)
 
+        AllCourse = self.cursor.execute("SELECT Name from Course")
+        AllCourse = self.cursor.fetchall()
+        Coursearr = []
+        for item in AllCourse:
+            Coursearr.append((item[0], 'Course'))
+        AllCourse = Coursearr
+        AllProj = self.cursor.execute("SELECT Name from Project")
+        AllProj = self.cursor.fetchall()
+        ProjArray = []
+        for item in AllProj:
+            ProjArray.append((item[0], "Project"))
+        AllProj = ProjArray
+
+        AllCourseProj = []
+        for item in AllProj:
+            AllCourseProj.append(item)
+        for item in AllCourse:
+            AllCourseProj.append(item)
+
+        Label(self.root, text="").grid(row=7, column=0, sticky=W)
+
+        rownum = 9
+        frame = Frame(self.root, width=300, height=100)
+        frame.grid(row=9, column=0, columnspan=4)
+        innerframe = Frame(frame)
+        vscrollbar = Scrollbar(frame, orient=VERTICAL)
+        vscrollbar.pack(side=RIGHT, fill=Y)
+        canvas = Canvas(frame, bd=0, highlightthickness=0, yscrollcommand=vscrollbar.set)
+        Label(innerframe, text="Name", bg='light gray', relief=RIDGE, width=65,
+              anchor=W).grid(row=8, column=1, sticky=W + N + S, pady=2)
+        Label(innerframe, text="Type", bg='light gray', relief=RIDGE, width=15,
+              anchor=W).grid(row=8, column=4, sticky=W + N + S, pady=2)
+
+        canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
+        vscrollbar.config(command=canvas.yview)
+
+        # reset the view
+        canvas.xview_moveto(0)
+        canvas.yview_moveto(0)
+
+        # create a frame inside the canvas which will be scrolled with it
+        interior_id = canvas.create_window(0, 0, window=innerframe, anchor=NW)
+
+        def _configure_interior(event):
+            # update the scrollbars to match the size of the inner frame
+            size = (innerframe.winfo_reqwidth(), innerframe.winfo_reqheight())
+            canvas.config(scrollregion="0 0 %s %s" % size)
+            if innerframe.winfo_reqwidth() != canvas.winfo_width():
+                # update the canvas's width to fit the inner frame
+                canvas.config(width=innerframe.winfo_reqwidth())
+
+        innerframe.bind('<Configure>', _configure_interior)
+
+        def _configure_canvas(event):
+            if innerframe.winfo_reqwidth() != canvas.winfo_width():
+                # update the inner frame's width to fill the canvas
+                canvas.itemconfigure(interior_id, width=canvas.winfo_width())
+        canvas.bind('<Configure>', _configure_canvas)
+
+        for item in AllCourseProj:
+            NewestB = Button(innerframe, text=item[0], command=self.courseview,
+                             anchor=W, relief=RIDGE, width=45, justify=LEFT, height=1)
+            NewestB.grid(row=rownum, column=1, sticky=W + E + S + N, columnspan=3)
+            Label(innerframe, text=item[1], relief=RIDGE, width=15, anchor=W, height=1).grid(
+                row=rownum, ipady=2, column=4, sticky=W + E + S + N)
+            rownum += 1
+
+        innerframe.pack(side=LEFT)
+
         def ApplyFilter():
             print("To do")
 
@@ -216,6 +296,8 @@ class App:
             YearVar.set("Please Select")
             CatVar.set("Please Select")
             ProjCorBo.set("Both")
+            self.CategoriesSelected.clear()
+            categoryLabelText.set('')
 
         ApplyFil = Button(self.root, text="Apply Filter", command=ApplyFilter)
         ApplyFil.grid(row=6, column=5)
@@ -223,6 +305,9 @@ class App:
         ResetFil.grid(row=6, column=6)
 
         self.root.mainloop()
+
+    def courseview(self):
+        print('do you plz')
 
     def MePage(self):
         self.cursor.close()
@@ -278,7 +363,7 @@ class App:
         back = Button(self.root, text='Back', command=self.AdminMainPage)
         back.grid(row=3, column=1)
         accept = Button(self.root, text='Accept', command=self.accept)
-        #reject = Button(self.root, text='Reject', command=self.reject)
+        # reject = Button(self.root, text='Reject', command=self.reject)
 
         getCourse = "SELECT CName,Cnumber FROM Courses"
         self.cursor.execute(getCourse)
@@ -470,6 +555,27 @@ class App:
                 db='cs4400_Team_38'
             )
             self.cursor = self.db.cursor()
+            self.Categories = self.cursor.execute("SELECT Name FROM Category")
+            self.Categories = self.cursor.fetchall()
+            Catarray = []
+            for c in self.Categories:
+                Catarray.append(c[0])
+            self.Categories = Catarray
+
+            Departments = self.cursor.execute("SELECT DISTINCT Name FROM Department")
+            Departments = self.cursor.fetchall()
+            Deparray = []
+            for d in Departments:
+                Deparray.append(d[0])
+            self.Departments = Deparray
+
+            Designations = self.cursor.execute("SELECT DISTINCT Name FROM Designation")
+            Designations = self.cursor.fetchall()
+            Desarray = []
+            for item in Designations:
+                Desarray.append(item[0])
+            self.Designations = Desarray
+
         except:
             messagebox.showwarning(
                 "Whoops!", "Please check your internet connection")
