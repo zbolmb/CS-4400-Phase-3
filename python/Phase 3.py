@@ -2,23 +2,17 @@ from tkinter import *
 from tkinter import messagebox
 import datetime
 import time
+import textwrap
 import pymysql
 
 
 class App:
 
     def __init__(self):
-        # self.reg = 0
         self.Years = ['Freshman', 'Sophomore', 'Junior', 'Senior']
         self.LoginPage()
 
     def LoginPage(self):
-        # if self.reg == 1:
-        #     self.rootreg.destroy()
-        #     self.rootreg = 0
-        # else:
-        #     self.rootreg = 0
-
         self.root = Tk()
         self.root.wm_title("CS 4400 Phase 3")
 
@@ -230,17 +224,17 @@ class App:
         ProjCorButtonTwo = Radiobutton(
             self.root, text="Both", variable=ProjCorBo, value="Both").grid(row=5, column=5)
 
-        AllCourse = self.cursor.execute("SELECT Name from Course")
+        AllCourse = self.cursor.execute("SELECT Name, Designation_name from Course")
         AllCourse = self.cursor.fetchall()
         Coursearr = []
         for item in AllCourse:
-            Coursearr.append((item[0], 'Course'))
+            Coursearr.append((item[0], 'Course', item[1]))
         self.AllCourse = Coursearr
-        AllProj = self.cursor.execute("SELECT Name from Project")
+        AllProj = self.cursor.execute("SELECT Name, Designation_name from Project")
         AllProj = self.cursor.fetchall()
         ProjArray = []
         for item in AllProj:
-            ProjArray.append((item[0], "Project"))
+            ProjArray.append((item[0], "Project", item[1]))
         self.AllProj = ProjArray
 
         self.AllCourseProj = []
@@ -305,14 +299,193 @@ class App:
             i = 2
 
         def ApplyFilter():
-            if ProjCorBo.get() == "Project":
-                self.innerframe.destroy()
-                self.canvas.destroy()
-                self.frame.destroy()
-                self.frame = Frame(self.root)
-                self.frame.grid(row=9, column=0, columnspan=7)
-                self.canvas = Canvas(self.frame, bd=0, highlightthickness=0,  borderwidth=0)
-                addcoursesproject(self.AllProj)
+            NewAllCourseProj = []
+            self.innerframe.destroy()
+            self.canvas.destroy()
+            self.frame.destroy()
+            self.frame = Frame(self.root)
+            self.frame.grid(row=9, column=0, columnspan=7)
+            self.canvas = Canvas(self.frame, bd=0, highlightthickness=0,  borderwidth=0)
+            AllProjReq = []
+            AllNameandDep = []
+            NameDep = self.cursor.execute("SELECT Name, Department FROM Major")
+            NameDep = self.cursor.fetchall()
+            for item in NameDep:
+                AllNameandDep.append((item[0], item[1]))
+            ProjRequir = self.cursor.execute(
+                "SELECT  Name, Requirement FROM Project_requirements WHERE Requirement IS NOT NULL")
+            ProjRequir = self.cursor.fetchall()
+            for item in ProjRequir:
+                AllProjReq.append((item[0], item[1]))
+            cantjoin = []
+
+            if MaVar.get() != "Please Select":
+                for item in AllNameandDep:
+                    if item[0] == MaVar.get():
+                        MaDep = item
+                for item in AllNameandDep:
+                    for x in AllProjReq:
+                        if item[0] == x[1][:-5]:
+                            if item[0] != MaDep[0]:
+                                cantjoin.append(x[0])
+                        if item[1] == x[1][:-5]:
+                            if item[1] != MaDep[1]:
+                                cantjoin.append(x[0])
+
+            if YearVar.get() != "Please Select":
+                notyears = []
+                for item in self.Years:
+                    if item != YearVar.get():
+                        notyears.append(item)
+
+                for item in AllProjReq:
+                    for x in notyears:
+                        if item[1][:-5] == x:
+                            cantjoin.append(item[0])
+
+            cantjoin = set(cantjoin)
+            if self.CategoriesSelected != []:
+                Carray = []
+                Parray = []
+                PCCatarray = []
+                for item in self.CategoriesSelected:
+                    CNames = self.cursor.execute(
+                        "SELECT DISTINCT Course_Name FROM Course_is_category WHERE Category_Name = %s", item)
+                    CNames = self.cursor.fetchall()
+                    for item in CNames:
+                        Carray.append(item[0])
+                        PCCatarray.append(item[0])
+                    PNames = self.cursor.execute(
+                        "SELECT DISTINCT Project_Name FROM Project_is_category WHERE Category_Name = %s", item)
+                    PNames = self.cursor.fetchall()
+                    for item in PNames:
+                        Parray.append(item[0])
+                        PCCatarray.append(item[0])
+
+            for item in self.AllCourseProj:
+                if ProjCorBo.get() == "Project":
+                    if item[1] == "Project":
+                        if self.eTitle.get() != '':
+                            if self.eTitle.get() in item[0]:
+                                if DesVar.get() != "Please Select":
+                                    if DesVar.get() == item[2]:
+                                        if self.CategoriesSelected != []:
+                                            for x in Parray:
+                                                if x in item[0]:
+                                                    if item[0] not in cantjoin:
+                                                        NewAllCourseProj.append((item[0], item[1]))
+                                        else:
+                                            if item[0] not in cantjoin:
+                                                NewAllCourseProj.append((item[0], item[1]))
+                                else:
+                                    if self.CategoriesSelected != []:
+                                        for x in Parray:
+                                            if x in item[0]:
+                                                if item[0] not in cantjoin:
+                                                    NewAllCourseProj.append((item[0], item[1]))
+                                    else:
+                                        if item[0] not in cantjoin:
+                                            NewAllCourseProj.append((item[0], item[1]))
+                        else:
+                            if DesVar.get() != "Please Select":
+                                if DesVar.get() == item[2]:
+                                    if self.CategoriesSelected != []:
+                                        for x in Parray:
+                                            if x in item[0]:
+                                                if item[0] not in cantjoin:
+                                                    NewAllCourseProj.append((item[0], item[1]))
+                                    else:
+                                        if item[0] not in cantjoin:
+                                            NewAllCourseProj.append((item[0], item[1]))
+
+                            else:
+                                if self.CategoriesSelected != []:
+                                    for x in Parray:
+                                        if x in item[0]:
+                                            if item[0] not in cantjoin:
+                                                NewAllCourseProj.append((item[0], item[1]))
+                                else:
+                                    if item[0] not in cantjoin:
+                                        NewAllCourseProj.append((item[0], item[1]))
+
+                if ProjCorBo.get() == "Course":
+                    if item[1] == "Course":
+                        if self.eTitle.get() != '':
+                            if self.eTitle.get() in item[0]:
+                                if DesVar.get() != "Please Select":
+                                    if DesVar.get() == item[2]:
+                                        if self.CategoriesSelected != []:
+                                            for x in Carray:
+                                                if x in item[0]:
+                                                    NewAllCourseProj.append((item[0], item[1]))
+                                        else:
+                                            NewAllCourseProj.append((item[0], item[1]))
+                                else:
+                                    if self.CategoriesSelected != []:
+                                        for x in Carray:
+                                            if x in item[0]:
+                                                NewAllCourseProj.append((item[0], item[1]))
+                                    else:
+                                        NewAllCourseProj.append((item[0], item[1]))
+                        else:
+                            if DesVar.get() != "Please Select":
+                                if DesVar.get() == item[2]:
+                                    if self.CategoriesSelected != []:
+                                        for x in Carray:
+                                            if x in item[0]:
+                                                NewAllCourseProj.append((item[0], item[1]))
+                                    else:
+                                        NewAllCourseProj.append((item[0], item[1]))
+                            else:
+                                if self.CategoriesSelected != []:
+                                    for x in Carray:
+                                        if x in item[0]:
+                                            NewAllCourseProj.append((item[0], item[1]))
+                                else:
+                                    NewAllCourseProj.append((item[0], item[1]))
+                if ProjCorBo.get() == "Both":
+                    if self.eTitle.get() != '':
+                        if self.eTitle.get() in item[0]:
+                            if DesVar.get() != "Please Select":
+                                if DesVar.get() == item[2]:
+                                    if self.CategoriesSelected != []:
+                                        for x in PCCatarray:
+                                            if x in item[0]:
+                                                if item[0] not in cantjoin:
+                                                    NewAllCourseProj.append((item[0], item[1]))
+                                    else:
+                                        if item[0] not in cantjoin:
+                                            NewAllCourseProj.append((item[0], item[1]))
+                            else:
+                                if self.CategoriesSelected != []:
+                                    for x in PCCatarray:
+                                        if x in item[0]:
+                                            if item[0] not in cantjoin:
+                                                NewAllCourseProj.append((item[0], item[1]))
+                                else:
+                                    if item[0] not in cantjoin:
+                                        NewAllCourseProj.append((item[0], item[1]))
+                    else:
+                        if DesVar.get() != "Please Select":
+                            if DesVar.get() == item[2]:
+                                if self.CategoriesSelected != []:
+                                    for x in PCCatarray:
+                                        if x in item[0]:
+                                            if item[0] not in cantjoin:
+                                                NewAllCourseProj.append((item[0], item[1]))
+                                else:
+                                    if item[0] not in cantjoin:
+                                        NewAllCourseProj.append((item[0], item[1]))
+                        else:
+                            if self.CategoriesSelected != []:
+                                for x in PCCatarray:
+                                    if x in item[0]:
+                                        if item[0] not in cantjoin:
+                                            NewAllCourseProj.append((item[0], item[1]))
+                            else:
+                                if item[0] not in cantjoin:
+                                    NewAllCourseProj.append((item[0], item[1]))
+            addcoursesproject(NewAllCourseProj)
 
         def ResetFilter():
             DesVar.set("Please Select")
@@ -387,25 +560,63 @@ class App:
             Label(self.root, text="Advisor:").grid(row=2, column=0)
             Label(self.root, text=advisorName + " (" + advisorEmail + ")").grid(row=2, column=1)
             Label(self.root, text="Description:").grid(row=3, column=0)
-            Label(self.root, text=description).grid(row=4, column=0, rowspan=5)
-            Label(self.root, text="Designation:").grid(row=9, column=0)
-            Label(self.root, text=designation).grid(row=9, column=1)
-            Label(self.root, text="Category:").grid(row=10, column=0)
-            Label(self.root, text=categories).grid(row=10, column=1)
-            Label(self.root, text="Requirements:").grid(row=11, column=0)
-            Label(self.root, text=requirements).grid(row=11, column=1)
-            Label(self.root, text="Estimated Number of Students:").grid(row=12, column=0)
-            Label(self.root, text=estimatedNum).grid(row=12, column=1)
+            Label(self.root, text=textwrap.fill(description, 20)).grid(row=3, column=1)
+            Label(self.root, text="Designation:").grid(row=4, column=0, sticky=N)
+            Label(self.root, text=designation).grid(row=4, column=1)
+            Label(self.root, text="Category:").grid(row=5, column=0)
+            Label(self.root, text=categories).grid(row=5, column=1)
+            Label(self.root, text="Requirements:").grid(row=6, column=0)
+            Label(self.root, text=requirements).grid(row=6, column=1)
+            Label(self.root, text="Estimated Number of Students:").grid(row=7, column=0)
+            Label(self.root, text=estimatedNum).grid(row=7, column=1)
 
             back = Button(self.root, text="Back", command=self.BacktoMainPage)
-            back.grid(row=13, column=0)
+            back.grid(row=8, column=0)
             applyToProject = Button(self.root, text="Apply", command=lambda: self.ApplyToProject(name, self.username))
-            applyToProject.grid(row=13, column=2)
+            applyToProject.grid(row=8, column=2)
 
             self.root.mainloop()
         else:
+            getCourseName = "SELECT Name FROM Course WHERE Name = %s"
+            self.cursor.execute(getCourseName, (name, ))
+            courseName = self.cursor.fetchone()[0]
+            getCourseNumber = "SELECT Course_number FROM Course WHERE Name = %s"
+            self.cursor.execute(getCourseNumber, (name, ))
+            courseNumber = self.cursor.fetchone()[0]
+            getInstructor = "SELECT Instructor FROM Course WHERE Name = %s"
+            self.cursor.execute(getInstructor, (name, ))
+            instructor = self.cursor.fetchone()[0]
+            getDesignation = "SELECT Designation_name FROM Course WHERE Name = %s"
+            self.cursor.execute(getDesignation, (name, ))
+            designation = self.cursor.fetchone()[0]
+            getCategories = "SELECT Course_Name FROM Course_is_category WHERE Course_Name = %s"
+            self.cursor.execute(getCategories, (name, ))
+            categoriesArr = self.cursor.fetchone()
+            categories = ''
+            if (not categoriesArr == None):
+                for c in categoriesArr:
+                    categories += ", " + c
+            getEstimatedNum = "SELECT EstimatedNum FROM Course WHERE Name = %s"
+            self.cursor.execute(getEstimatedNum, (name, ))
+            estimatedNum = self.cursor.fetchone()[0]
+
+            self.root.wm_title(courseNumber)
+            #Label(self.root, text=courseNumber).grid(row=1, column=0, rowspan=2, sticky=W + E)
+            Label(self.root, text="Course Name:").grid(row=2, column=0)
+            Label(self.root, text=courseName).grid(row=2, column=1)
+            Label(self.root, text="Instructor:").grid(row=3, column=0)
+            Label(self.root, text=instructor).grid(row=3, column=1)
+            Label(self.root, text="Designation:").grid(row=4, column=0)
+            Label(self.root, text=designation).grid(row=4, column=1)
+            Label(self.root, text="Category:").grid(row=5, column=0)
+            Label(self.root, text=categories).grid(row=5, column=1)
+            Label(self.root, text="Estimated Number of Students:").grid(row=6, column=0)
+            Label(self.root, text=estimatedNum).grid(row=6, column=1)
+
             back = Button(self.root, text="Back", command=self.BacktoMainPage)
             back.grid(row=13, column=0)
+
+            self.root.mainloop()
 
     def ApplyToProject(self, name, user):
         print('wat')
@@ -418,6 +629,7 @@ class App:
         else:
             curDate = time.strftime("%Y/%m/%d")
             status = 'pending'
+            # sql = 'INSERT INTO Apply (Student_Name, Project_Name, Date, Status) VALUES (%s, %s, %s, %s)'
             sql = 'INSERT INTO Apply (Student_Name, Project_Name, Date, Status) VALUES (%s, %s, %s, %s)'
             self.cursor.execute(sql, (user, name, curDate, status))
             self.BacktoMainPage()
@@ -501,7 +713,35 @@ class App:
         self.db.close()
 
     def StuViewApp(self):
-        print("to do")
+        self.root.destroy()
+        self.root = Tk()
+        self.root.wm_title("My Applications")
+        self.cursor = self.db.cursor()
+        getApp = "SELECT Project_Name, Date, Status FROM Apply,User WHERE Apply.Student_Name = User.Username AND User.Username = %s"
+        self.cursor.execute(getApp, self.username)
+        app = self.cursor.fetchall()
+        # print(app)
+        Label(self.root, text='My Application').grid(row=0, column=1)
+        Label(self.root, text='Project Name').grid(row=1, column=1)
+        Label(self.root, text='Date').grid(row=1, column=2)
+        Label(self.root, text='Status').grid(row=1, column=3)
+
+        #scrollbar = Scrollbar(self.root)
+        # scrollbar.grid(column=5)
+
+        v = IntVar(self.root)
+        v.set = 0
+        a = 5
+        # FIX THIS BELOW::::
+        # default shaded in boxes are anak, crew, fhs (1,3,4)
+        for each in app:
+            Label(text=each[0], relief=RIDGE, width=25).grid(row=a, column=1)
+            Label(text=each[1], relief=RIDGE, width=25).grid(row=a, column=2)
+            Label(text=each[2], relief=RIDGE, width=25).grid(row=a, column=3)
+            a = a + 1
+
+        back = Button(self.root, text='Back', command=self.BacktoMainPage)
+        back.grid(row=a, column=0, sticky=S)
 
     # AdminMainPage
     def AdminMainPage(self):
@@ -530,7 +770,7 @@ class App:
         self.root = Tk()
         self.root.wm_title("Applications")
         self.cursor = self.db.cursor()
-        getApp = "SELECT Project_Name, Major, Year, Status FROM Apply,User WHERE Apply.Student_Name = User.Username"
+        getApp = "SELECT Project_Name, Major, Year, Status, Student_Name FROM Apply,User WHERE Apply.Student_Name = User.Username"
         self.cursor.execute(getApp)
         app = self.cursor.fetchall()
         # print(app)
@@ -547,11 +787,12 @@ class App:
         v.set = 0
         a = 5
         self.checkboxValues = dict()
-        # FIX THIS BELOW::::
-        # default shaded in boxes are anak, crew, fhs (1,3,4)
+        self.rowToProjStuName = dict()
         for each in app:
-            self.checkboxValues[each[0]] = Variable(0)
-            l = Checkbutton(self.root, variable=self.checkboxValues[each[0]])
+            self.checkboxValues[a] = Variable()
+            self.checkboxValues[a].set(0)
+            self.rowToProjStuName[a] = (each[0], each[4])
+            l = Checkbutton(self.root, variable=self.checkboxValues[a])
             l.grid(row=a, column=0)
             Label(text=each[0], relief=RIDGE, width=25).grid(row=a, column=1)
             Label(text=each[1], relief=RIDGE, width=25).grid(row=a, column=2)
@@ -568,18 +809,26 @@ class App:
         reject.grid(row=a, column=4)
 
     def accept(self):
-        for projName, value in self.checkboxValues.items():
-            newProjName = projName
-            if value.get() == "1":
-                self.cursor.execute("UPDATE Apply SET Status = 'Accepted' WHERE Project_Name = (%s)", (newProjName))
+        for row, value in self.checkboxValues.items():
+            newProjName = self.rowToProjStuName[row][0]
+            stuName = self.rowToProjStuName[row][1]
+            if value.get() == '1':
+                self.cursor.execute(
+                    "UPDATE Apply SET Status = 'Accepted' WHERE Project_Name = (%s) AND Student_Name = (%s)", (newProjName, stuName))
+                # self.cursor.execute(
+                #     "UPDATE Apply SET Status = 'Accepted' WHERE Project_Name = (%s)", (newProjName))
                 self.db.commit()
                 print(newProjName, "'s status has been updated to Accepted!")
 
     def reject(self):
-        for projName, value in self.checkboxValues.items():
-            newProjName = projName
+        for row, value in self.checkboxValues.items():
+            newProjName = self.rowToProjStuName[row][0]
+            stuName = self.rowToProjStuName[row][1]
             if value.get() == "1":
-                self.cursor.execute("UPDATE Apply SET Status = 'Rejected' WHERE Project_Name = (%s)", (newProjName))
+                self.cursor.execute(
+                    "UPDATE Apply SET Status = 'Rejected' WHERE Project_Name = (%s) AND Student_Name = (%s)", (newProjName, stuName))
+                # self.cursor.execute(
+                #     "UPDATE Apply SET Status = 'Rejected' WHERE Project_Name = (%s)", (newProjName))
                 self.db.commit()
                 print(newProjName, "'s status has been updated to Rejected!")
 
@@ -641,26 +890,43 @@ class App:
         print(numTotalAppsAccepted)
         # Error below - weird formmating with number uses "(10)" isntead of 10. Also splits across rows and looks weird
         Label(self.root, text="There are a total of " + numTotalApps + " applications and " +
-              numTotalAppsAccepted + " accepted applicants").grid(row=0, column=1, sticky=N)
+              numTotalAppsAccepted + " accepted applicants").grid(row=0, column=0, columnspan=4, sticky=N)
 
         #getAppReport = "SELECT Project_Name, Count(Student_Name),(Select (SELECT COUNT('Status') FROM Apply WHERE Status ="'Accepted'")/(Select Count('Status')) From Apply), Project GROUP BY Project_name"
 
         # Below - just dummy data for table creation, real SQL statement is above but isn't correct
-        getAppReport = "SELECT Project_Name, Count(Student_Name),Date,Status From Apply Where Project_Name = Project_Name Group by Project_Name"
+        getAppReport = "SELECT Project_Name AS Z, Count(Student_Name),Date,Status From Apply Where Project_Name=Project_Name Group by Project_Name"
 
-        # Correct Statisic SQL: (Select Distinct Project_Name, (SELECT COUNT('Status') FROM Apply WHERE Status =  'Accepted' And A.Project_Name = Project_Name)/(Select Count('Status') From Apply Where A.Project_Name = Project_Name) from Apply As A)
+        # Correct Statisic SQL: (Select Distinct Project_Name, (SELECT
+        # COUNT('Status') FROM Apply WHERE Status =  'Accepted' And A.Project_Name
+        # = Project_Name)/(Select Count('Status') From Apply Where A.Project_Name
+        # = Project_Name) from Apply As A)'
+        acceptRate = "Select Distinct Project_Name, (SELECT COUNT('Status') FROM Apply WHERE Status =  'Accepted' And A.Project_Name = Project_Name)/(Select Count('Status') From Apply Where A.Project_Name = Project_Name) from Apply As A"
+        self.cursor.execute(acceptRate)
+        rates = self.cursor.fetchall()
+        ratesDict = dict()
+        for i in rates:
+            ratesDict[i[0]] = i[1]
+            print(str(i[0]) + " " + str(i[1]))
+            print("rates is", i[1])
+        # ratesDict[Project_Name]
+        #acceptRate = "Select (SELECT COUNT('Status') FROM Apply WHERE Status =  'Accepted' And A.Project_Name = Project_Name)/(Select Count('Status') From Apply Where A.Project_Name = Project_Name) from Apply As A Group By Project_Name"
         # Above - need to find a way to make stats reflective of each individual project
         self.cursor.execute(getAppReport)
         appReport = self.cursor.fetchall()
-        print(appReport)
+        # print(appReport)
 
-        Label(self.root, text='Application Project Report').grid(row=1, column=1)
-        Label(self.root, text='Project').grid(row=1, column=1)
+        Label(self.root, text='Application Project Report').grid(row=1, column=0, columnspan=4)
+        Label(self.root, text='Project').grid(row=2, column=1)
         Label(self.root, text='# of Applicants').grid(row=2, column=2)
         Label(self.root, text='Accept Rate').grid(row=2, column=3)
         Label(self.root, text='Top 3 Major').grid(row=2, column=4)
 
         a = 5
+        appReportFinal = []
+        for each in appReport:
+            appReportFinal.append((each[0], each[1], ratesDict[each[0]], each[3]))
+        appReport = sorted(appReportFinal, key=lambda report: report[2], reverse=True)
         for each in appReport:
             Label(text=each[0], relief=RIDGE, width=25).grid(row=a, column=1)
             Label(text=each[1], relief=RIDGE, width=25).grid(row=a, column=2)
@@ -670,7 +936,6 @@ class App:
 
         back = Button(self.root, text='Back', command=self.BacktoAdminPage)
         back.grid(row=a, column=0, sticky=S)
-        print('TODO')
 
     def AddProjPage(self):
         self.root.destroy()
